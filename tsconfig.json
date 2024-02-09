@@ -1,9 +1,10 @@
 {
   "extends": "@react-native/typescript-config/tsconfig.json",
     "compilerOptions": {
+      "allowImportingTsExtensions": false,
+      "allowArbitraryExtensions": false,
       "baseUrl": "./src",
       "paths": {
-        "@": ["./*"],
         "@assets/*": ["assets/*"],
         "@components/*": ["components/*"],
         "@hooks/*": ["hooks/*"],
