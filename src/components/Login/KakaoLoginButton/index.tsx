@@ -1,3 +1,4 @@
+import React from 'react';
 import { Alert, Dimensions, Pressable, StyleSheet, Text } from 'react-native';
 import { login } from '@react-native-seoul/kakao-login';
 
@@ -7,7 +8,6 @@ const KakaoLoginButton = () => {
   const signInWithKakao = async () => {
     return await login()
       .then(result => {
-        console.log('result: ', result);
         Alert.alert('result', JSON.stringify(result, null, 2));
         return result;
       })
