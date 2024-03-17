@@ -1,15 +1,18 @@
 import React from 'react';
-import { Alert, Dimensions, Pressable, StyleSheet, Text } from 'react-native';
+import { Dimensions, Pressable, StyleSheet, Text } from 'react-native';
 import { login } from '@react-native-seoul/kakao-login';
 
-import SvgIcon from '@components/common/SvgIcon';
+import { KakaoSymbol } from '@components/common/icons/KakaoSymbol';
+import { Props } from '@screens/Login';
 
-const KakaoLoginButton = () => {
+const KakaoLoginButton = ({ setIsLoggedIn }: Props) => {
   const signInWithKakao = async () => {
     return await login()
       .then(result => {
-        Alert.alert('result', JSON.stringify(result, null, 2));
-        return result;
+        if (!result.idToken) {
+          throw 'identify token이 존재하지 않습니다.';
+        }
+        setIsLoggedIn(true);
       })
       .catch(error => {
         console.log('Error: ', error);
@@ -19,7 +22,7 @@ const KakaoLoginButton = () => {
 
   return (
     <Pressable style={styles.container} onPress={signInWithKakao}>
-      <SvgIcon name="KakaoSymbol" size={20} />
+      <KakaoSymbol />
       <Text>카카오 계정으로 로그인</Text>
     </Pressable>
   );
