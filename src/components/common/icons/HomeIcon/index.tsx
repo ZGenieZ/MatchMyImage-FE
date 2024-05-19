@@ -1,6 +1,7 @@
+import React from 'react';
 import Svg, { Path, SvgProps } from 'react-native-svg';
 
-import { theme } from '@styles/theme';
+import { theme } from 'styles/theme';
 
 const HomeIcon = ({
   width = 20,
