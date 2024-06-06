@@ -56,7 +56,7 @@ const UserInfo = ({ navigation: { navigate } }: Props) => {
   const handleDateChange = useCallback(
     (date: Date) => {
       setValue('birthday', dayjs(date).format('YYYY / MM / DD'));
-      toggleDatePicker(false);
+      setDatePickerOpen(false);
     },
     [setValue, toggleDatePicker],
   );
@@ -163,7 +163,7 @@ const UserInfo = ({ navigation: { navigate } }: Props) => {
                   open={datePickerOpen}
                   mode="date"
                   date={dayjs().toDate()}
-                  minimumDate={dayjs().subtract(14, 'year').toDate()}
+                  maximumDate={dayjs().subtract(14, 'year').toDate()}
                   onConfirm={handleDateChange}
                   onCancel={toggleDatePicker(false)}
                 />
