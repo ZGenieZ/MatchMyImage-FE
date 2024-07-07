@@ -17,6 +17,8 @@
     "@react-navigation/bottom-tabs": "^6.5.16",
     "@react-navigation/native": "^6.1.14",
     "@react-navigation/stack": "^6.3.29",
+    "@tanstack/react-query": "^5.40.1",
+    "axios": "^1.7.2",
     "dayjs": "^1.11.11",
     "react": "18.2.0",
     "react-hook-form": "^7.51.2",
@@ -24,6 +26,7 @@
     "react-native-config": "^1.5.1",
     "react-native-date-picker": "^5.0.2",
     "react-native-dropdown-picker": "^5.4.6",
+    "react-native-encrypted-storage": "^4.0.3",
     "react-native-gesture-handler": "^2.16.0",
     "react-native-paper": "^5.12.3",
     "react-native-popover-view": "^5.1.8",
@@ -31,7 +34,9 @@
     "react-native-screens": "^3.29.0",
     "react-native-status-bar-height": "^2.6.0",
     "react-native-svg": "^14.1.0",
-    "react-native-vector-icons": "^10.0.3"
+    "react-native-vector-icons": "^10.0.3",
+    "zod": "^3.23.8",
+    "zustand": "^4.5.2"
   },
   "devDependencies": {
     "@babel/core": "^7.20.0",
