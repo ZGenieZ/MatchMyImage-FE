@@ -10,6 +10,7 @@ import { HomeStackNavigator } from 'components/navigators/Stack/Home';
 import { ThemeContext } from 'hooks/shared/useTheme';
 import { theme } from 'styles/theme';
 import { Signup } from 'screens/Signup';
+import StorybookUIRoot from './.storybook';
 
 function App(): React.JSX.Element {
   const [isLoggedIn, setIsLoggedIn] = useState<boolean>(false);
@@ -36,8 +37,14 @@ function App(): React.JSX.Element {
   );
 }
 
+let AppEntryPoint = App;
+
+if (process.env.STORYBOOK_ENABLED) {
+  AppEntryPoint = StorybookUIRoot;
+}
+
 const styles = StyleSheet.create({
   container: { flex: 1 },
 });
 
-export default App;
+export default AppEntryPoint;
