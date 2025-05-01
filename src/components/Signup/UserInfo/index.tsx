@@ -1,5 +1,5 @@
 import React, { useCallback, useMemo, useState } from 'react';
-import { Dimensions, Pressable, ScrollView, StyleSheet, Text, TextInput, View } from 'react-native';
+import { Alert, Dimensions, Pressable, ScrollView, StyleSheet, Text, TextInput, View } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { Controller, useFormContext } from 'react-hook-form';
 import DropDownPicker from 'react-native-dropdown-picker';
@@ -10,10 +10,12 @@ import DatePicker from 'react-native-date-picker';
 import dayjs from 'dayjs';
 import Popover from 'react-native-popover-view';
 
+import type { RootStackParamList } from 'types/shared';
 import { theme } from 'styles/theme';
 import { isAos } from 'utils/device';
-import { RootStackParamList } from 'types/shared';
 import { QuestionCircle } from 'components/common/icons/QuestionCircle';
+import { useValidNickname } from 'hooks/queries/member/useValidNickname';
+import { StatusCodeEnum } from 'schemes/shared/enum';
 
 type Props = NativeStackScreenProps<RootStackParamList, 'SIGN_UP_USER_INFO'>;
 
@@ -22,10 +24,16 @@ const UserInfo = ({ navigation: { navigate } }: Props) => {
     control,
     watch,
     setValue,
-    formState: { errors, dirtyFields },
+    formState: { errors, dirtyFields, touchedFields },
     setError,
     clearErrors,
   } = useFormContext();
+
+  const {
+    mutate: mutateValidNickname,
+    isSuccess: isSuccessMutateValidNickname,
+    reset: resetMutateValidNickname,
+  } = useValidNickname();
 
   const { top, bottom } = useSafeAreaInsets();
   const heightStyle = useMemo(
@@ -74,7 +82,7 @@ const UserInfo = ({ navigation: { navigate } }: Props) => {
               style={[
                 styles.label,
                 errors.nickname && styles.error,
-                !errors.nickname && dirtyFields.nickname && styles.valid,
+                !errors.nickname && touchedFields.nickname && isSuccessMutateValidNickname && styles.valid,
               ]}
             >
               닉네임
@@ -95,18 +103,23 @@ const UserInfo = ({ navigation: { navigate } }: Props) => {
           <Controller
             name="nickname"
             control={control}
-            render={({ field: { onChange, value } }) => (
+            render={({ field: { onChange, onBlur, value } }) => (
               <>
                 <TextInput
                   style={[
                     styles.input,
                     errors.nickname && styles.errorBorder,
-                    !errors.nickname && dirtyFields.nickname && styles.validBorder,
+                    !errors.nickname && touchedFields.nickname && isSuccessMutateValidNickname && styles.validBorder,
                   ]}
                   placeholder="닉네임을 입력해주세요"
                   onChangeText={onChange}
                   onBlur={() => {
-                    if (!dirtyFields.nickname) return;
+                    onBlur();
+                    resetMutateValidNickname();
+
+                    if (!dirtyFields.nickname) {
+                      return;
+                    }
 
                     if (nickname.length < 2 || nickname.length > 7) {
                       setError('nickname', { type: 'nickname', message: '* 닉네임 길이 조건을 확인해주세요.' });
@@ -118,7 +131,23 @@ const UserInfo = ({ navigation: { navigate } }: Props) => {
                       return;
                     }
 
-                    clearErrors('nickname');
+                    mutateValidNickname(
+                      { nickname },
+                      {
+                        onSuccess: ({ statusCode, data }) => {
+                          if (statusCode !== StatusCodeEnum.enum.S100) {
+                            setError('nickname', { type: 'nickname', message: `* ${data}.` });
+                            return;
+                          }
+
+                          clearErrors('nickname');
+                        },
+                        onError: e => {
+                          Alert.alert('닉네임 중복 여부 검증에 실패했습니다.');
+                          console.error(e.response?.data);
+                        },
+                      },
+                    );
                   }}
                   value={value}
                 />
@@ -133,9 +162,14 @@ const UserInfo = ({ navigation: { navigate } }: Props) => {
             <HelperText
               type="info"
               padding="none"
-              style={[styles.message, dirtyFields.nickname ? styles.valid : styles.default]}
+              style={[
+                styles.message,
+                touchedFields.nickname && isSuccessMutateValidNickname ? styles.valid : styles.default,
+              ]}
             >
-              {dirtyFields.nickname ? '사용 가능한 닉네임이에요.' : '* 최소 2자 ~ 최대 7글자 입력 가능합니다.'}
+              {touchedFields.nickname && isSuccessMutateValidNickname
+                ? '사용 가능한 닉네임이에요.'
+                : '* 최소 2자 ~ 최대 7글자 입력 가능합니다.'}
             </HelperText>
           )}
         </View>
@@ -143,7 +177,7 @@ const UserInfo = ({ navigation: { navigate } }: Props) => {
           <Controller
             name="birthday"
             control={control}
-            render={({ field: { value } }) => (
+            render={({ field: { value, onBlur } }) => (
               <>
                 <Text style={[styles.label, errors.birthday && styles.error]}>생년월일</Text>
                 <Pressable onPress={toggleDatePicker(true)}>
@@ -164,7 +198,10 @@ const UserInfo = ({ navigation: { navigate } }: Props) => {
                   mode="date"
                   date={dayjs().toDate()}
                   maximumDate={dayjs().subtract(14, 'year').toDate()}
-                  onConfirm={handleDateChange}
+                  onConfirm={date => {
+                    onBlur();
+                    handleDateChange(date);
+                  }}
                   onCancel={toggleDatePicker(false)}
                 />
               </>
@@ -192,7 +229,9 @@ const UserInfo = ({ navigation: { navigate } }: Props) => {
                   open={selectBoxOpen}
                   setOpen={setSelectBoxOpen}
                   onSelectItem={({ value }) => {
-                    if (!value) return;
+                    if (!value) {
+                      return;
+                    }
                     setValue('gender', value);
                   }}
                 />
