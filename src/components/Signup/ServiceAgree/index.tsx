@@ -1,27 +1,33 @@
 import React, { useCallback, useMemo, useState } from 'react';
-import { Alert, Dimensions, Platform, Pressable, StyleSheet, Text, View } from 'react-native';
+import { Dimensions, Platform, Pressable, StyleSheet, Text, View } from 'react-native';
 import { Controller, SubmitHandler, useFormContext } from 'react-hook-form';
 import { getStatusBarHeight } from 'react-native-status-bar-height';
 import { Checkbox, Divider } from 'react-native-paper';
 
+import type { signUpRequestSchemeType } from 'types/member/scheme/api';
 import { theme } from 'styles/theme';
+import { useSignUp } from 'hooks/queries/member/useSignUp';
 
-const CHECKBOX_MAP_LIST = [
-  { label: 'age_agree', text: '(필수) 만 14세 이상입니다.', isLinkable: false },
-  { label: 'service_agree', text: '(필수) 서비스 이용약관 관련 동의', isLinkable: true },
-  { label: 'private_agree', text: '(필수) 개인정보 처리 방침', isLinkable: true },
-  { label: 'marketing_agree', text: '(선택) 광고성 정보 수신동의', isLinkable: true },
+type AgreementKeys = keyof signUpRequestSchemeType['agreements'];
+type AgreementLabels = `agreements.${AgreementKeys}`;
+
+const CHECKBOX_MAP_LIST: { label: AgreementLabels; text: string; isLinkable: boolean }[] = [
+  { label: 'agreements.termsOfAgree', text: '(필수) 서비스 이용약관 관련 동의', isLinkable: true },
+  { label: 'agreements.privacy', text: '(필수) 개인정보 처리 방침', isLinkable: true },
+  { label: 'agreements.advertisement', text: '(선택) 광고성 정보 수신동의', isLinkable: true },
 ];
 
 const ServiceAgree = () => {
   const [allChecked, setAllChecked] = useState<boolean>(false);
-  const { handleSubmit, control, watch, setValue } = useFormContext();
-  const ageAgree = watch('age_agree');
-  const serviceAgree = watch('service_agree');
-  const privateAgree = watch('private_agree');
+  const [ageOfAgree, setAgeOfAgree] = useState<boolean>(false);
+  const { handleSubmit, control, watch, setValue } = useFormContext<signUpRequestSchemeType>();
+  const serviceAgree = watch('agreements.termsOfAgree');
+  const privateAgree = watch('agreements.privacy');
+
+  const { mutate } = useSignUp();
 
   const isButtonDisabled = useMemo(() => {
-    if (ageAgree && serviceAgree && privateAgree) {
+    if (ageOfAgree && serviceAgree && privateAgree) {
       return false;
     }
 
@@ -30,14 +36,22 @@ const ServiceAgree = () => {
     }
 
     return true;
-  }, [ageAgree, allChecked, privateAgree, serviceAgree]);
+  }, [ageOfAgree, allChecked, privateAgree, serviceAgree]);
 
-  const onSubmit: SubmitHandler<any> = useCallback(value => {
-    Alert.alert(JSON.stringify(value, null, 2));
-  }, []);
+  const onSubmit: SubmitHandler<signUpRequestSchemeType> = useCallback(
+    values => {
+      console.log(values);
+      const { dateOfBirth } = values;
+      mutate({
+        ...values,
+        dateOfBirth: dateOfBirth.replaceAll(' / ', '-'),
+      });
+    },
+    [mutate],
+  );
 
   const onPressCheckBox = useCallback(
-    (label: string) => () => {
+    (label: AgreementLabels) => () => {
       if (watch(label)) {
         setValue(label, false);
         return;
@@ -47,33 +61,45 @@ const ServiceAgree = () => {
     [setValue, watch],
   );
 
+  const toggleAgeOfAgreeCheckBox = useCallback(() => {
+    setAgeOfAgree(prev => !prev);
+  }, []);
+
   const onPressAllCheckBox = useCallback(() => {
     if (allChecked) {
       setAllChecked(false);
-      setValue('age_agree', false);
-      setValue('service_agree', false);
-      setValue('private_agree', false);
-      setValue('marketing_agree', false);
+      setAgeOfAgree(false);
+      setValue('agreements.termsOfAgree', false);
+      setValue('agreements.privacy', false);
+      setValue('agreements.advertisement', false);
       return;
     }
     setAllChecked(true);
-    setValue('age_agree', true);
-    setValue('service_agree', true);
-    setValue('private_agree', true);
-    setValue('marketing_agree', true);
+    setAgeOfAgree(true);
+    setValue('agreements.termsOfAgree', true);
+    setValue('agreements.privacy', true);
+    setValue('agreements.advertisement', true);
   }, [allChecked, setValue]);
 
-  const getCheckboxStatus = useCallback((label: string) => (watch(label) ? 'checked' : 'unchecked'), [watch]);
+  const getCheckboxStatus = useCallback((label: AgreementLabels) => (watch(label) ? 'checked' : 'unchecked'), [watch]);
 
   return (
     <View style={styles.container}>
       <View style={styles.inputSection}>
         <View style={styles.titleWrap}>
-          <Text style={styles.titleBold}>서비스 이용 약관에</Text>
-          <Text style={styles.titleNormal}>동의해주세요</Text>
+          <Text style={styles.titleBold}>이용 약관에 동의해주시면</Text>
+          <Text style={styles.titleNormal}>회원가입이 끝나요!</Text>
         </View>
         <Divider style={styles.topDivider} />
         <View style={styles.checkboxWrap}>
+          <View style={styles.formRow}>
+            <Checkbox.Android
+              color={theme.COLORS.PRIMARY.RED_500}
+              status={ageOfAgree ? 'checked' : 'unchecked'}
+              onPress={toggleAgeOfAgreeCheckBox}
+            />
+            <Text>(필수) 만 14세 이상입니다.</Text>
+          </View>
           {CHECKBOX_MAP_LIST.map(item => (
             <Controller
               key={item.label}
@@ -107,7 +133,7 @@ const ServiceAgree = () => {
         onPress={handleSubmit(onSubmit)}
         disabled={isButtonDisabled}
       >
-        <Text style={styles.buttonText}>가입 완료하기</Text>
+        <Text style={styles.buttonText}>완료</Text>
       </Pressable>
     </View>
   );

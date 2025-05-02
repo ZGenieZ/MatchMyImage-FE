@@ -16,6 +16,7 @@ import { isAos } from 'utils/device';
 import { QuestionCircle } from 'components/common/icons/QuestionCircle';
 import { useValidNickname } from 'hooks/queries/member/useValidNickname';
 import { StatusCodeEnum } from 'schemes/shared/enum';
+import type { signUpRequestSchemeType } from 'types/member/scheme/api';
 
 type Props = NativeStackScreenProps<RootStackParamList, 'SIGN_UP_USER_INFO'>;
 
@@ -27,7 +28,7 @@ const UserInfo = ({ navigation: { navigate } }: Props) => {
     formState: { errors, dirtyFields, touchedFields },
     setError,
     clearErrors,
-  } = useFormContext();
+  } = useFormContext<signUpRequestSchemeType>();
 
   const {
     mutate: mutateValidNickname,
@@ -45,36 +46,37 @@ const UserInfo = ({ navigation: { navigate } }: Props) => {
     [top, bottom],
   );
 
-  const [selectBoxOpen, setSelectBoxOpen] = useState<boolean>(false);
   const [datePickerOpen, setDatePickerOpen] = useState<boolean>(false);
 
   const nickname = watch('nickname');
-  const birthday = watch('birthday');
+  const dateOfBirth = watch('dateOfBirth');
   const gender = watch('gender');
 
-  const isButtonDisabled = useMemo(() => !(nickname && birthday && gender), [nickname, birthday, gender]);
-
-  const selectItems = [
-    { label: '남성', value: 'male' },
-    { label: '여성', value: 'female' },
-  ];
+  const isButtonDisabled = useMemo(() => !(nickname && dateOfBirth && gender), [nickname, dateOfBirth, gender]);
 
   const toggleDatePicker = useCallback((isOpen: boolean) => () => setDatePickerOpen(isOpen), []);
 
   const handleDateChange = useCallback(
     (date: Date) => {
-      setValue('birthday', dayjs(date).format('YYYY / MM / DD'));
+      setValue('dateOfBirth', dayjs(date).format('YYYY / MM / DD'));
       setDatePickerOpen(false);
     },
     [setValue, toggleDatePicker],
+  );
+
+  const handleGenderButton = useCallback(
+    (value: 'MALE' | 'FEMALE') => () => {
+      setValue('gender', value);
+    },
+    [],
   );
 
   return (
     <ScrollView contentContainerStyle={[styles.container, heightStyle]}>
       <View style={styles.inputSection}>
         <View>
-          <Text style={styles.titleBold}>사용자 정보를</Text>
-          <Text style={styles.titleNormal}>입력해주세요</Text>
+          <Text style={styles.titleBold}>반가워요!</Text>
+          <Text style={styles.titleNormal}>사용자 정보를 입력해주세요</Text>
         </View>
         <View style={styles.formContainer}>
           <View style={styles.labelWrap}>
@@ -175,14 +177,14 @@ const UserInfo = ({ navigation: { navigate } }: Props) => {
         </View>
         <View style={styles.formContainer}>
           <Controller
-            name="birthday"
+            name="dateOfBirth"
             control={control}
             render={({ field: { value, onBlur } }) => (
               <>
-                <Text style={[styles.label, errors.birthday && styles.error]}>생년월일</Text>
+                <Text style={[styles.label, errors.dateOfBirth && styles.error]}>생년월일</Text>
                 <Pressable onPress={toggleDatePicker(true)}>
                   <TextInput
-                    style={[styles.input, errors.birthday && styles.error]}
+                    style={[styles.input, errors.dateOfBirth && styles.error]}
                     pointerEvents="none"
                     editable={false}
                     placeholder="YYYY / MM / DD"
@@ -208,47 +210,29 @@ const UserInfo = ({ navigation: { navigate } }: Props) => {
             )}
           />
         </View>
-        <View style={styles.formContainer}>
-          <Controller
-            control={control}
-            render={({ field }) => (
-              <>
-                <Text style={[styles.label, errors.gender && styles.error]}>성별</Text>
-                <DropDownPicker
-                  {...field}
-                  listMode="SCROLLVIEW"
-                  style={styles.selectBox}
-                  dropDownContainerStyle={styles.selectBox}
-                  items={selectItems}
-                  multiple={false}
-                  setValue={cb => {
-                    const value = cb(field.value);
-                    return field.onChange(value);
-                  }}
-                  placeholder="선택"
-                  open={selectBoxOpen}
-                  setOpen={setSelectBoxOpen}
-                  onSelectItem={({ value }) => {
-                    if (!value) {
-                      return;
-                    }
-                    setValue('gender', value);
-                  }}
-                />
-              </>
-            )}
-            name="gender"
-          />
+        <View style={styles.genderButtonContainer}>
+          <Pressable
+            style={[styles.genderButton, gender === 'MALE' && { borderColor: theme.COLORS.DEFAULT.BLACK }]}
+            onPress={handleGenderButton('MALE')}
+          >
+            <Text style={styles.genderButtonText}>남성</Text>
+          </Pressable>
+          <Pressable
+            style={[styles.genderButton, gender === 'FEMALE' && { borderColor: theme.COLORS.DEFAULT.BLACK }]}
+            onPress={handleGenderButton('FEMALE')}
+          >
+            <Text style={styles.genderButtonText}>여성</Text>
+          </Pressable>
         </View>
       </View>
       <Pressable
-        style={[styles.button, !isButtonDisabled && { backgroundColor: theme.COLORS.PRIMARY.RED_500 }]}
+        style={[styles.nextButton, !isButtonDisabled && { backgroundColor: theme.COLORS.PRIMARY.RED_500 }]}
         disabled={isButtonDisabled}
         onPress={() => {
           navigate('SIGN_UP_AGREEMENT');
         }}
       >
-        <Text style={styles.buttonText}>다음</Text>
+        <Text style={styles.nextButtonText}>다음</Text>
       </Pressable>
     </ScrollView>
   );
@@ -312,14 +296,31 @@ const styles = StyleSheet.create({
     width: Dimensions.get('window').width / 2 - 24,
     borderColor: theme.COLORS.GRAY_SCALE.GRAY_400,
   },
-  button: {
+  genderButtonContainer: {
+    flexDirection: 'row',
+    gap: 12,
+  },
+  genderButton: {
+    flex: 1,
+    justifyContent: 'center',
+    alignItems: 'center',
+    borderRadius: 8,
+    height: 48,
+    borderWidth: 1,
+    borderColor: theme.COLORS.GRAY_SCALE.GRAY_500,
+  },
+  genderButtonText: {
+    fontSize: 16,
+    color: theme.COLORS.DEFAULT.BLACK,
+  },
+  nextButton: {
     justifyContent: 'center',
     alignItems: 'center',
     borderRadius: 8,
     height: 56,
     backgroundColor: theme.COLORS.GRAY_SCALE.GRAY_500,
   },
-  buttonText: {
+  nextButtonText: {
     fontSize: 18,
     color: theme.COLORS.DEFAULT.WHITE,
   },
