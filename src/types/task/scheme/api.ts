@@ -9,6 +9,7 @@ import {
   fetchTaskListRequestScheme,
   fetchTaskListResponseDataScheme,
   fetchTaskListResponseScheme,
+  updateTodoTaskResponseScheme,
   taskCategoryScheme,
   todoTaskScheme,
 } from 'schemes/task/api';
@@ -23,6 +24,7 @@ type fetchTaskListResponseSchemeType = z.infer<typeof fetchTaskListResponseSchem
 type addTodoTaskRequestSchemeType = z.infer<typeof addTodoTaskRequestScheme>;
 type addTodoTaskResponseDataSchemeType = z.infer<typeof addTodoTaskResponseDataScheme>;
 type addTodoTaskResponseSchemeType = z.infer<typeof addTodoTaskResponseScheme>;
+type updateTodoTaskResponseSchemeType = z.infer<typeof updateTodoTaskResponseScheme>;
 
 export type {
   taskCategorySchemeType,
@@ -35,4 +37,5 @@ export type {
   addTodoTaskRequestSchemeType,
   addTodoTaskResponseDataSchemeType,
   addTodoTaskResponseSchemeType,
+  updateTodoTaskResponseSchemeType,
 };

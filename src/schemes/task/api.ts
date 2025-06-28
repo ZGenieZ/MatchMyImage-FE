@@ -82,6 +82,10 @@ const addTodoTaskResponseScheme = BaseResponseScheme.extend({
   data: addTodoTaskResponseDataScheme,
 });
 
+const updateTodoTaskResponseScheme = BaseResponseScheme.extend({
+  data: z.number().describe('완료된 task id'),
+});
+
 export {
   taskCategoryScheme,
   fetchTaskCategoryListResponseScheme,
@@ -93,4 +97,5 @@ export {
   addTodoTaskRequestScheme,
   addTodoTaskResponseDataScheme,
   addTodoTaskResponseScheme,
+  updateTodoTaskResponseScheme,
 };

@@ -13,6 +13,8 @@ const TASK_API = {
   CATEGORY_LIST: 'v1/tasks/category',
   LIST: 'v1/tasks',
   ADD_TODO: 'v1/tasks/todo',
+  SUCCESS_TODO: 'v1/tasks/todo/:id/complete',
+  WAIT_TODO: 'v1/tasks/todo/:id/wait',
 } as const;
 
 export { AUTH_API, MEMBER_API, TASK_API };
